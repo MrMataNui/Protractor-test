@@ -1,0 +1,15 @@
+{
+	"version": "0.2.0",
+	"configurations": [{
+		"name": "Travelocity",
+		"type": "node",
+		"request": "launch",
+		"program": "${workspaceRoot}\\conf.js",
+		"stopOnEntry": false,
+		"args": [
+			"${workspaceRoot}\\conf.js"
+		],
+		"sourceMaps": true,
+		"smartStep": true
+	}]
+}

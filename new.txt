@@ -1,0 +1,19 @@
+{
+	"version": "0.2.0",
+	"configurations": [{
+		"name": "Travelocity",
+		"type": "node",
+		"request": "launch",
+		"program": "${workspaceRoot}\\conf.js",
+		"stopOnEntry": false,
+		"args": [
+			"${workspaceRoot}\\conf.js",
+			"${workspaceRoot}\\e2e\\backoffice\\protractor_backoffice.js"
+		],
+		"sourceMaps": true,
+		"outFiles": [
+			"${workspaceRoot}\\e2e\\backoffice\\**\\*.js"
+		],
+		"smartStep": true
+	}]
+}
