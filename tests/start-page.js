@@ -1,9 +1,8 @@
 describe('Travelocity', () => {
-	const AppPage = require('../classes/page-navigation');
+	const travelocity = require('../classes/page-navigation');
 	const travelPage = require('../classes/travel-location');
-	let travelocity, seconds;
+	let seconds;
 	beforeAll(() => {
-		travelocity = new AppPage();
 		seconds = (num) => num * 1000;
 		travelocity.homePage();
 	});
@@ -21,6 +20,4 @@ describe('Travelocity', () => {
 		browser.wait(hotelSearch, seconds(5));
 		// browser.sleep(seconds(10));
 	});
-
-	// afterAll(() => browser.close());
 });

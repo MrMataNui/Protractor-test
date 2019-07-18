@@ -7,6 +7,7 @@ exports.config = {
 	specs: [
 		'tests/start-page.js',
 		'tests/start-page-errors.js',
+		'tests/start-page-hidden.js',
 	]
 };
 /*

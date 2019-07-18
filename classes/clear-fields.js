@@ -1,30 +1,4 @@
 class fieldClear {
-
-	/** @param  {[any, number]} [getElement, getString] */
-	selectValue([getElement, getString]) {
-		getElement
-			.$(`[value="${getString}"]`)
-			.click();
-	}
-	async clearIt(location) {
-		let present = await location.isPresent();
-		location
-			.getText()
-			.then(text => {
-				console.log('text', `'${text}'`);
-			});
-		// let text = await location.getText();
-		// console.log('present - text', present, ' - ', text);
-		if (present) {
-			location.clear();
-			location.sendKeys('');
-
-			const script = () => (arguments[0].value = '');
-			const tag = browser
-				.executeScript(script, location);
-			expect(tag).toEqual('');
-		}
-	}
 	clear() {
 		const locations = [
 			$('#hotel-destination-hp-hotel'),
@@ -46,17 +20,16 @@ class fieldClear {
 					location.clear();
 					location.sendKeys('');
 
-					const script = () => (arguments[0].value = '');
-					const tag = browser
-						.executeScript(script, location);
-					expect(tag).toEqual('');
+					const locationValue = browser
+						.executeScript('return arguments[0].value = ""', location);
+					expect(locationValue).toEqual('');
 				});
 		});
-		// locations.forEach(item => {
-		// 	this.clearIt(item).then();
-		// });
-		roomCheck.forEach(item => {
-			this.selectValue(item);
+
+		roomCheck.forEach(([getElement, getValue]) => {
+			getElement
+				.$(`[value="${getValue}"]`)
+				.click();
 		});
 
 		let addFlight = $('#hotel-add-flight-checkbox-hp-hotel');
@@ -67,8 +40,9 @@ class fieldClear {
 					addFlight.click();
 				}
 			});
-		expect(addFlight.isSelected()).toEqual(false);
+		expect(addFlight.isSelected())
+			.toEqual(false);
 	}
 }
 
-module.exports = fieldClear;
+module.exports = new fieldClear();

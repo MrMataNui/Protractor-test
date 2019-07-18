@@ -1,5 +1,4 @@
-module.exports = class AppPage {
-
+class AppPage {
 	homePage() {
 		browser.waitForAngularEnabled(false);
 		browser.get('https://www.travelocity.com/');
@@ -12,9 +11,11 @@ module.exports = class AppPage {
 			.then(webpageTitle => webpageTitle);
 	}
 
+	/** @param  {string} url */
 	findUrl(url) {
 		return protractor
 			.ExpectedConditions
 			.urlContains(url);
 	}
 }
+module.exports = new AppPage();
