@@ -1,3 +1,6 @@
+const {
+	expect
+} = require('chai');
 const travelQuery = {
 	location: 'Boston, Massachusetts',
 	checkIn: '08/20/2019',
@@ -94,9 +97,12 @@ class travelSearch {
 			.sendKeys('');
 
 		const getCheckout = () => (arguments[0].value = '');
-		const tag = browser
-			.executeScript(getCheckout, hotelCheckout);
-		expect(tag).toEqual('');
+		browser
+			.executeScript(getCheckout, hotelCheckout)
+			.then(tag => {
+				expect(tag).to.equal('');
+			});
+
 
 		hotelCheckout.sendKeys(this.search.checkOut);
 	}
@@ -137,7 +143,7 @@ class travelSearch {
 	/** Runs the protractor tests */
 	runTests() {
 		debugger;
-		const seconds = (num) => num * 1000;
+		// const seconds = (num) => num * 1000;
 
 		this.setLocation();
 
@@ -160,10 +166,6 @@ class travelSearch {
 		this.setFlight();
 
 		this.setCar();
-
-		// browser.sleep(seconds(2));
-		this.clickSubmit();
-
 	}
 }
 

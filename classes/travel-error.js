@@ -1,3 +1,7 @@
+const {
+	expect
+} = require('chai');
+
 const seconds = (num) => num * 1000;
 const travelQuery = {
 	checkIn: '07/17/2019',
@@ -17,14 +21,18 @@ class travelSearch {
 	/**
 	 * This class will search Travelocity for a potential hotels
 	 * @constructor
-	 * @param {Object[]} inhabitants The people staying in each room
-	 * @param {number} inhabitants.adults The number of adults
-	 * @param {number} inhabitants.children The number of children
-	 * @param {(string | number)[]} inhabitants.childrenAges The ages of the children
+	 * @param {Object} travelQuery The people staying in each room
+	 * @param {string} travelQuery.checkIn The checkin date
+	 * @param {string} travelQuery.checkOut The checkout date
+	 * @param {Object[]} travelQuery.inhabitants The people staying in each room
+	 * @param {number} travelQuery.inhabitants.adults The number of adults
+	 * @param {number} travelQuery.inhabitants.children The number of children
+	 * @param {(string | number)[]} travelQuery.inhabitants.childrenAges The ages of the children
 	 */
 	constructor(travelQuery) {
 		this.search = travelQuery;
 	}
+
 	/**
 	 * @param  {Promise} getElement
 	 * @param  {(string | number)} getString
@@ -33,15 +41,10 @@ class travelSearch {
 		getString = (getString === 'Under 1') ? 0 : getString;
 		switch (getString) {
 			case 'Age':
-				getElement
-					.$$('option')
-					.get(0)
-					.click();
+				getElement.$$('option').get(0).click();
 				break;
 			default:
-				getElement
-					.$(`[value="${getString}"]`)
-					.click();
+				getElement.$(`[value="${getString}"]`).click();
 				break;
 		}
 	}
@@ -80,8 +83,7 @@ class travelSearch {
 	 */
 	setFlight(flight) {
 		const addFlight = $('#hotel-add-flight-checkbox-hp-hotel');
-		addFlight
-			.isSelected()
+		addFlight.isSelected()
 			.then(flightInfo => {
 				switch (true) {
 					case flight && !flightInfo:
@@ -98,6 +100,7 @@ class travelSearch {
 			.$('.btn-primary.btn-action.gcw-submit')
 			.click();
 	}
+
 	/** Fills in the check-in time */
 	setCheckIn() {
 		$('#hotel-checkin-hp-hotel')
@@ -113,9 +116,11 @@ class travelSearch {
 			.sendKeys('');
 
 		const getCheckout = () => (arguments[0].value = '');
-		const tag = browser
-			.executeScript(getCheckout, hotelCheckout);
-		expect(tag).toEqual('');
+		browser
+			.executeScript(getCheckout, hotelCheckout)
+			.then(tag => {
+				expect(tag).to.equal('');
+			});
 
 		hotelCheckout.sendKeys(this.search.checkOut);
 	}
@@ -136,106 +141,64 @@ class travelSearch {
 		this.clickSubmit();
 	}
 
-	getFormattedDate(getTime) {
-		const todayTime = (getTime) ? new Date(getTime) : new Date();
-		const month = todayTime.getMonth() + 1;
-		const day = todayTime.getDate();
-		const year = todayTime.getFullYear();
-		return `${month}/${day}/${year}`;
-	}
-
-	async getErrors(type) {
-		switch (type) {
-			case 'destination':
-				this.errorCheck({
-					href: '#hotel-destination-hp-hotel',
-					errorText: 'Please complete the highlighted destination field below.'
-				});
-				break;
-			case 'dateSelect':
-				const currentDate = this.getFormattedDate();
-				const dateDiff = 43071633817;
-				const newDateDiff = 1000 * 60 * 60 * 24 * 480;
-				const futureDate = this.getFormattedDate(Date.now() + dateDiff);
-				const futureDate2 = this.getFormattedDate(Date.now() + newDateDiff);
-				// 43072800043
-				// 43071633817
-				// 43053523003
-				// 43,000,000,000
-				// 43000000000
-				console.log('currentDate', currentDate);
-				console.log('dateDiff', dateDiff);
-				console.log('newDateDiff', newDateDiff);
-				console.log('futureDate', futureDate);
-				console.log('futureDate2', futureDate2);
-				// this.dateCheck({
-				// 	href: '#hotel-checkin-hp-hotel',
-				// 	errorText1: 'Dates must be no more than 28 days apart.',
-				// 	errorText2: 'Your length of stay cannot be longer than 28 nights.',
-				// 	errorText3: 'Date format should be MM/dd/yyyy.',
-				// 	errorText4: `Dates must be between ${currentDate} and 11/28/2020.`,
-				// });
-				this.dateCheck({
-					href: '#hotel-checkout-hp-hotel',
-					errorText1: 'Dates must be no more than 28 days apart.',
-					errorText2: 'Your length of stay cannot be longer than 28 nights.',
-					errorText3: 'Date format should be MM/dd/yyyy.',
-				});
-				break;
-			case 'flight':
-				this.errorCheck({
-					href: '#hotel-flight-origin-hp-hotel',
-					errorText: 'Please complete the highlighted origin field below.'
-				});
-				break;
-			case 'travellers':
-				this.errorCheck({
-					href: '#hotel-1-adults-hp-hotel',
-					errorText: 'We are only able to book between 1 and 6 travellers. Please adjust the number of travellers for your search.'
-				});
-				break;
-			case 'ageSelect':
-				this.errorCheck({
-					href: '#hotel-1-age-select-2-hp-hotel',
-					errorText: 'Please provide the ages of children below.'
-				});
-				break;
-		}
-	}
-	/** @param  {string} href */
-	errorLocation(href) {
-		const errorLocation = $(`.error-link[href="${href}"]`);
-		expect(errorLocation.isPresent()).toBe(true);
-		return errorLocation;
-	}
-
 	/**
 	 * @param  {Object} errorObj
 	 * @param  {string} errorObj.href
 	 * @param  {string} errorObj.errorText
 	 */
 	errorCheck(errorObj) {
-		const errorLocation = this.errorLocation(errorObj.href);
-		expect(errorLocation.getText())
-			.toEqual(errorObj.errorText);
+		const findError = protractor
+			.ExpectedConditions
+			.textToBePresentInElement(
+				$(`.error-link[href="${errorObj.href}"]`),
+				errorObj.errorText
+			);
+		browser.wait(findError, 15000);
 	}
 
-	/**
-	 * @param  {Object} errorObj
-	 * @param  {string} errorObj.href
-	 * @param  {string} errorObj.errorText1
-	 * @param  {string} errorObj.errorText2
-	 * @param  {string} errorObj.errorText3
-	 */
-	dateCheck(errorObj) {
-		const errorLocation = this.errorLocation(errorObj.href);
+	dateCheck() {
+		const checkInError = $(`.error-link[href="#hotel-checkin-hp-hotel"]`);
+		const checkOutError = $(`.error-link[href="#hotel-checkout-hp-hotel"]`);
+
+		const errorText1 = 'Dates must be no more than 28 days apart.';
+		const errorText2 = 'Your length of stay cannot be longer than 28 nights.';
+		const errorText3 = 'Date format should be MM/dd/yyyy.';
+
 		const EC = protractor.ExpectedConditions;
 		const findErrorText = EC.or(
-			EC.textToBePresentInElement(errorLocation, errorObj.errorText1),
-			EC.textToBePresentInElement(errorLocation, errorObj.errorText2),
-			EC.textToBePresentInElement(errorLocation, errorObj.errorText3),
+			EC.textToBePresentInElement(checkInError, errorText1),
+			EC.textToBePresentInElement(checkInError, errorText2),
+			EC.textToBePresentInElement(checkInError, errorText3),
+
+			EC.textToBePresentInElement(checkOutError, errorText1),
+			EC.textToBePresentInElement(checkOutError, errorText2),
+			EC.textToBePresentInElement(checkOutError, errorText3),
 		);
 		browser.wait(findErrorText, 5000);
+	}
+
+	currentDateCheck() {
+		const errorText = /Dates must be between \d{1,2}\/\d{1,2}\/\d{4} and \d{1,2}\/\d{1,2}\/\d{4}\./;
+		const currentDate = new Date().getTime();
+		const getCheckinDate = new Date(this.search.checkIn).getTime();
+		const getCheckoutDate = new Date(this.search.checkOut).getTime();
+		const checkCurrent = (check) => (currentDate > check);
+
+		let href;
+		switch (true) {
+			case checkCurrent(getCheckinDate):
+				href = '#hotel-checkin-hp-hotel';
+				break;
+			case checkCurrent(getCheckoutDate):
+				href = '#hotel-checkout-hp-hotel';
+				break;
+			default:
+				return;
+		}
+		$(`.error-link[href="${href}"]`)
+			.getText().then(error => {
+				expect(error).to.match(errorText);
+			});
 	}
 }
 

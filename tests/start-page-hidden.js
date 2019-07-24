@@ -6,17 +6,14 @@ describe('Travelocity', () => {
 		travelocity.homePage();
 		field.clear();
 		travelPage.checkAll();
-		// browser.sleep(2000);
 	});
 
 	it('should determine if the \'flight\' error appears', () => {
 		travelPage.setFlight();
-		// browser.sleep(1000);
 	});
 
 	it('should determine if the \'car\' error appears', () => {
 		travelPage.setCar();
-		// browser.sleep(1000);
 	});
 
 	afterAll(() => browser.close());
