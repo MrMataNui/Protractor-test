@@ -30,29 +30,28 @@ class travelSearch {
 	 * @param {(string | number)[]} travelQuery.inhabitants.childrenAges The ages of the children
 	 */
 	constructor(travelQuery) {
-		this.search = travelQuery;
+		this.checkIn = travelQuery.checkIn;
+		this.checkOut = travelQuery.checkOut;
+		this.inhabitants = travelQuery.inhabitants;
 	}
 
 	/**
-	 * @param  {Promise} getElement
+	 * @param  {ElementFinder} getElement
 	 * @param  {(string | number)} getString
 	 */
 	selectValue(getElement, getString) {
 		getString = (getString === 'Under 1') ? 0 : getString;
-		switch (getString) {
-			case 'Age':
-				getElement.$$('option').get(0).click();
-				break;
-			default:
-				getElement.$(`[value="${getString}"]`).click();
-				break;
+		if (getString === 'Age') {
+			getElement.$$('option').get(0).click();
+		} else {
+			getElement.$(`[value="${getString}"]`).click();
 		}
 	}
 
 	/** Sets the number of rooms */
 	setNumberOfRooms() {
 		const findRooms = $('#hotel-rooms-hp-hotel');
-		this.selectValue(findRooms, this.search.inhabitants.length);
+		this.selectValue(findRooms, this.inhabitants.length);
 	}
 
 	/**
@@ -104,7 +103,7 @@ class travelSearch {
 	/** Fills in the check-in time */
 	setCheckIn() {
 		$('#hotel-checkin-hp-hotel')
-			.sendKeys(this.search.checkIn);
+			.sendKeys(this.checkIn);
 	}
 
 	/** Fills in the check-out time */
@@ -122,7 +121,7 @@ class travelSearch {
 				expect(tag).to.equal('');
 			});
 
-		hotelCheckout.sendKeys(this.search.checkOut);
+		hotelCheckout.sendKeys(this.checkOut);
 	}
 
 	/** Finds the errors for all of the fields */
@@ -130,9 +129,9 @@ class travelSearch {
 		this.setCheckIn();
 		this.setCheckOut();
 		this.setNumberOfRooms();
-		for (let i = 0; i < this.search.inhabitants.length; i++) {
+		for (let i = 0; i < this.inhabitants.length; i++) {
 			const roomNumber = i + 1;
-			this.setRoomNumber(roomNumber, this.search.inhabitants[i]);
+			this.setRoomNumber(roomNumber, this.inhabitants[i]);
 		}
 
 		browser.sleep(seconds(2));
@@ -142,63 +141,82 @@ class travelSearch {
 	}
 
 	/**
-	 * @param  {Object} errorObj
-	 * @param  {string} errorObj.href
-	 * @param  {string} errorObj.errorText
+	 * @param  {Object} location
+	 * @param  {ElementFinder} location.checkIn
+	 * @param  {ElementFinder} location.checkOut
+	 * @param  {Object} text
+	 * @param  {string} text.error1
+	 * @param  {string} text.error2
 	 */
-	errorCheck(errorObj) {
-		const findError = protractor
-			.ExpectedConditions
-			.textToBePresentInElement(
-				$(`.error-link[href="${errorObj.href}"]`),
-				errorObj.errorText
-			);
-		browser.wait(findError, 15000);
+	dateCheck(location, text) {
+		const EC = protractor.ExpectedConditions;
+		return EC.or(
+			EC.textToBePresentInElement(location.checkIn, text.error1),
+			EC.textToBePresentInElement(location.checkIn, text.error2),
+
+			EC.textToBePresentInElement(location.checkOut, text.error1),
+			EC.textToBePresentInElement(location.checkOut, text.error2),
+		);
 	}
 
-	dateCheck() {
-		const checkInError = $(`.error-link[href="#hotel-checkin-hp-hotel"]`);
-		const checkOutError = $(`.error-link[href="#hotel-checkout-hp-hotel"]`);
+	/**
+	 * @param  {RegExp} dateFormat
+	 * @returns string
+	 */
+	dateFormatCheck(dateFormat) {
+		const getCheckIn = this.checkIn
+			.match(dateFormat);
 
-		const errorText1 = 'Dates must be no more than 28 days apart.';
-		const errorText2 = 'Your length of stay cannot be longer than 28 nights.';
-		const errorText3 = 'Date format should be MM/dd/yyyy.';
+		const getCheckOut = this.checkOut
+			.match(dateFormat);
 
-		const EC = protractor.ExpectedConditions;
-		const findErrorText = EC.or(
-			EC.textToBePresentInElement(checkInError, errorText1),
-			EC.textToBePresentInElement(checkInError, errorText2),
-			EC.textToBePresentInElement(checkInError, errorText3),
-
-			EC.textToBePresentInElement(checkOutError, errorText1),
-			EC.textToBePresentInElement(checkOutError, errorText2),
-			EC.textToBePresentInElement(checkOutError, errorText3),
-		);
-		browser.wait(findErrorText, 5000);
+		if (!getCheckIn) {
+			return '#hotel-checkin-hp-hotel';
+		} else if (!getCheckOut) {
+			return '#hotel-checkout-hp-hotel';
+		}
 	}
 
 	currentDateCheck() {
-		const errorText = /Dates must be between \d{1,2}\/\d{1,2}\/\d{4} and \d{1,2}\/\d{1,2}\/\d{4}\./;
 		const currentDate = new Date().getTime();
-		const getCheckinDate = new Date(this.search.checkIn).getTime();
-		const getCheckoutDate = new Date(this.search.checkOut).getTime();
+		const getCheckinDate = new Date(this.checkIn).getTime();
+		const getCheckoutDate = new Date(this.checkOut).getTime();
 		const checkCurrent = (check) => (currentDate > check);
 
-		let href;
-		switch (true) {
-			case checkCurrent(getCheckinDate):
-				href = '#hotel-checkin-hp-hotel';
-				break;
-			case checkCurrent(getCheckoutDate):
-				href = '#hotel-checkout-hp-hotel';
-				break;
-			default:
-				return;
+		if (checkCurrent(getCheckinDate)) {
+			return '#hotel-checkin-hp-hotel';
+		} else if (checkCurrent(getCheckoutDate)) {
+			return '#hotel-checkout-hp-hotel';
 		}
-		$(`.error-link[href="${href}"]`)
-			.getText().then(error => {
-				expect(error).to.match(errorText);
-			});
+	}
+
+	/**
+	 * @param  {string} errorName
+	 * @return  {{ location: ElementFinder, text: string }}
+	 */
+	findErrors(errorName) {
+		switch (errorName) {
+			case 'destination':
+				return {
+					location: $('.error-link[href="#hotel-destination-hp-hotel"]'),
+						text: 'Please complete the highlighted destination field below.'
+				};
+			case 'flight':
+				return {
+					location: $('.error-link[href="#hotel-flight-origin-hp-hotel"]'),
+						text: 'Please complete the highlighted origin field below.'
+				};
+			case 'traveller':
+				return {
+					location: $('.error-link[href="#hotel-1-adults-hp-hotel"]'),
+						text: 'We are only able to book between 1 and 6 travellers. Please adjust the number of travellers for your search.'
+				};
+			case 'ageSelect':
+				return {
+					location: $('.error-link[href="#hotel-1-age-select-2-hp-hotel"]'),
+						text: 'Please provide the ages of children below.'
+				};
+		}
 	}
 }
 

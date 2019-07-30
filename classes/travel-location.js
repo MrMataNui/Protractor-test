@@ -1,6 +1,7 @@
 const {
 	expect
 } = require('chai');
+
 const travelQuery = {
 	location: 'Boston, Massachusetts',
 	checkIn: '08/20/2019',
