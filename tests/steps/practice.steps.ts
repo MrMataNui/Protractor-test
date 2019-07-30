@@ -1,67 +1,45 @@
 const { Given, When, Then, Before, Feature, Scenario } = require('cucumber');
-const { protractor, browser, $ } = require('protractor');
+const { by, element, protractor, browser, $ } = require('protractor');
 
 const chai = require('chai');
 chai.use(require('chai-as-promised'));
 const expect = chai.expect;
 
-const travelocity = require('../../classes/page-navigation');
-const travelPage = require('../../classes/travel-location');
-const travelError = require('../../classes/travel-error');
+const { getSearch, getError, getQuery } = require('../../classes/travel-location');
 const field = require('../../classes/clear-fields');
 
-Before(() => travelocity.homePage());
+let travelPage, travelError;
+Before(() => {
+	travelPage = new getSearch(getQuery);
+	travelError = new getError(getQuery);
+
+	browser.waitForAngularEnabled(false);
+	browser.get('https://www.travelocity.com/');
+});
 
 Given('Travelocity is opened', () => {
 	const expectedTitle = 'Wander Wisely with Cheap Hotels, Flights, Vacations & Travel Deals | Travelocity';
-	travelocity.getTitleText()
-		.then(actualTitle => expect(actualTitle).to.equal(expectedTitle));
+	expect(browser.getTitle())
+		.to.eventually.equal(expectedTitle);
 });
 
 When('it enters in valid data', () => {
-	travelPage.runTests();
+	travelPage.setValidData();
 });
 
 Then('it should submit travel information', () => {
 	travelPage.clickSubmit();
-	const validTitle = '/Hotel-Search';
 
-	browser.wait(travelocity.findUrl(validTitle), 5000);
-	/*
-		const url = protractor
-			.ExpectedConditions
-			.urlContains(invalidTitle);
-		browser.wait(url, 5000);
-
-		const actualTitle = travelocity.getTitleText()
-			.then(actualTitle => actualTitle);
-
-		expect(actualTitle).to.include(invalidTitle);
-
-		expect(travelocity.getTitleText())
-			.to.eventually.include(validTitle);
-
-		const actualTitle = await travelocity.getTitleText();
-		expect(actualTitle).to.eventually.include('///');
-
-		return expect(travelocity.getTitleText())
-			.to.eventually.include('///');
-
-		return travelocity.getTitleText()
-			.should.eventually.include('///');
-	*/
+	expect(browser.getTitle())
+		.to.eventually.include('/Hotel-Search');
 });
 
 When('bad info is presented', () => {
 	field.clear();
-	travelError.checkAll();
+	travelError.setInvalidData();
 });
 
 Then('it should present destination errors', () => {
-	// const error = {
-	// 	location: $('.error-link[href="#hotel-destination-hp-hotel"]'),
-	// 	text: 'Please complete the highlighted destination field below.'
-	// };
 	const error = travelError.findErrors('destination');
 
 	const findError = protractor
@@ -69,20 +47,13 @@ Then('it should present destination errors', () => {
 		.textToBePresentInElement(error.location, error.text);
 	browser.wait(findError, 15000);
 
-	// expect(error.location.getText())
-	// 	.to.eventually.equal(error.text);
-
-	// error.location
-	// 	.getText()
-	// 	.then(text => expect(text).to.equal(error.text));
+	// expect(error.location.isPresent()).to.eventually.be.true;
+	// expect(error.location.getText()).to.eventually.equal(error.text);
 });
 
 Then('it should present flight errors', () => {
-	// const error = {
-	// 	location: $('.error-link[href="#hotel-flight-origin-hp-hotel"]'),
-	// 	text: 'Please complete the highlighted origin field below.'
-	// };
-	const error = travelError.findErrors('destination');
+	const error = travelError.findErrors('flight');
+
 	const findError = protractor
 		.ExpectedConditions
 		.textToBePresentInElement(error.location, error.text);
@@ -90,11 +61,8 @@ Then('it should present flight errors', () => {
 });
 
 Then('it should present traveller errors', () => {
-	// const error = {
-	// 	location: $('.error-link[href="#hotel-1-adults-hp-hotel"]'),
-	// 	text: 'We are only able to book between 1 and 6 travellers. Please adjust the number of travellers for your search.'
-	// };
-	const error = travelError.findErrors('destination');
+	const error = travelError.findErrors('traveller');
+
 	const findError = protractor
 		.ExpectedConditions
 		.textToBePresentInElement(error.location, error.text);
@@ -102,11 +70,8 @@ Then('it should present traveller errors', () => {
 });
 
 Then('it should present ageSelect errors', () => {
-	// const error = {
-	// 	location: $('.error-link[href="#hotel-1-age-select-2-hp-hotel"]'),
-	// 	text: 'Please provide the ages of children below.'
-	// };
-	const error = travelError.findErrors('destination');
+	const error = travelError.findErrors('ageSelect');
+
 	const findError = protractor
 		.ExpectedConditions
 		.textToBePresentInElement(error.location, error.text);
