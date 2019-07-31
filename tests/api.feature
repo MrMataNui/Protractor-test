@@ -6,6 +6,6 @@ Feature: Test API
     Then the GET method gets the first post
 			And the GET method gets all posts
 			And the POST method inserts a post
-			And the PUT method updates a post
-			And the PATCH method updates a post
+			And the PUT method updates the first post
+			And the PATCH method updates the first post
 			And the DELETE method deletes the first post

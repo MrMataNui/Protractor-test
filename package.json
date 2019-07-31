@@ -17,6 +17,7 @@
 		"@types/node": "^12.6.8",
 		"chai": "^4.2.0",
 		"chai-as-promised": "^7.1.1",
+		"chai-things": "^0.2.0",
 		"check-error": "^1.0.2",
 		"cucumber": "^5.1.0",
 		"jasmine": "^3.3.1",
