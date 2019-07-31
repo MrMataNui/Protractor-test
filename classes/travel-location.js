@@ -119,6 +119,35 @@ class travelDefault {
 
 		hotelCheckout.sendKeys(this.checkOut);
 	}
+
+	/**
+	 *  Adds a flight
+	 * @param  {boolean} flight
+	 */
+	setFlight(flight) {
+		// arguments.length > 0
+		const addFlight = $('#hotel-add-flight-checkbox-hp-hotel');
+		if (flight !== 'undefined') {
+			addFlight.isSelected()
+				.then(flightInfo => {
+					switch (true) {
+						case flight && !flightInfo:
+						case !flight && flightInfo:
+							addFlight.click();
+					}
+				});
+		} else if (this.flight) {
+			addFlight.click();
+
+			$('#hotel-flight-origin-hp-hotel')
+				.sendKeys(this.flightFrom);
+
+			if (this.directFlight) {
+				$('#packageDirectFlight-hp-hotel')
+					.click();
+			}
+		}
+	}
 }
 
 class travelSearch extends travelDefault {
@@ -145,22 +174,6 @@ class travelSearch extends travelDefault {
 	setLocation() {
 		$('#hotel-destination-hp-hotel')
 			.sendKeys(this.location);
-	}
-
-	/** Add a flight */
-	setFlight() {
-		if (this.flight) {
-			$('#hotel-add-flight-checkbox-hp-hotel')
-				.click();
-
-			$('#hotel-flight-origin-hp-hotel')
-				.sendKeys(this.flightFrom);
-
-			if (this.directFlight) {
-				$('#packageDirectFlight-hp-hotel')
-					.click();
-			}
-		}
 	}
 
 	/** Add a car */
@@ -216,22 +229,6 @@ class travelError extends travelDefault {
 		super(travelQuery);
 	}
 
-	/**
-	 *  Adds a flight
-	 * @param  {boolean} flight
-	 */
-	setFlight(flight) {
-		const addFlight = $('#hotel-add-flight-checkbox-hp-hotel');
-		addFlight.isSelected()
-			.then(flightInfo => {
-				switch (true) {
-					case flight && !flightInfo:
-					case !flight && flightInfo:
-						addFlight.click();
-				}
-			});
-	}
-
 	/** Finds the errors for all of the fields */
 	setInvalidData() {
 		this.setCheckIn();
@@ -270,15 +267,12 @@ class travelError extends travelDefault {
 	 * @returns string
 	 */
 	dateFormatCheck(dateFormat) {
-		const getCheckIn = this.checkIn
-			.match(dateFormat);
+		const getCheckIn = this.checkIn.match(dateFormat);
+		const getCheckOut = this.checkOut.match(dateFormat);
 
-		const getCheckOut = this.checkOut
-			.match(dateFormat);
-
-		if (!getCheckIn) {
+		if (getCheckIn === false) {
 			return '#hotel-checkin-hp-hotel';
-		} else if (!getCheckOut) {
+		} else if (getCheckOut === false) {
 			return '#hotel-checkout-hp-hotel';
 		}
 	}
@@ -301,7 +295,7 @@ class travelError extends travelDefault {
 	 * @param  {string} errorName
 	 * @return  {{ location: ElementFinder, text: string }}
 	 */
-	findErrors(errorName) {
+	find(errorName) {
 		switch (errorName) {
 			case 'destination':
 				return {

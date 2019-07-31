@@ -40,7 +40,7 @@ When('bad info is presented', () => {
 });
 
 Then('it should present destination errors', () => {
-	const error = travelError.findErrors('destination');
+	const error = travelError.find('destination');
 
 	const findError = protractor
 		.ExpectedConditions
@@ -52,7 +52,7 @@ Then('it should present destination errors', () => {
 });
 
 Then('it should present flight errors', () => {
-	const error = travelError.findErrors('flight');
+	const error = travelError.find('flight');
 
 	const findError = protractor
 		.ExpectedConditions
@@ -61,7 +61,7 @@ Then('it should present flight errors', () => {
 });
 
 Then('it should present traveller errors', () => {
-	const error = travelError.findErrors('traveller');
+	const error = travelError.find('traveller');
 
 	const findError = protractor
 		.ExpectedConditions
@@ -70,7 +70,7 @@ Then('it should present traveller errors', () => {
 });
 
 Then('it should present ageSelect errors', () => {
-	const error = travelError.findErrors('ageSelect');
+	const error = travelError.find('ageSelect');
 
 	const findError = protractor
 		.ExpectedConditions
@@ -93,16 +93,12 @@ Then('it should present dateSelect errors', () => {
 
 	const dateFormat = /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/;
 	let href = travelError.dateFormatCheck(dateFormat);
-	$(`.error-link[href="${href}"]`)
-		.getText().then(error => {
-			expect(error).to.equal('Date format should be MM/dd/yyyy.');
-		});
+
+	expect($(`.error-link[href="${href}"]`).getText())
+		.to.eventually.equal('Date format should be MM/dd/yyyy.');
 
 	href = travelError.currentDateCheck();
-	$(`.error-link[href="${href}"]`)
-		.getText().then(error => {
-			const errorRegex = /Dates must be between \d{1,2}\/\d{1,2}\/\d{4} and \d{1,2}\/\d{1,2}\/\d{4}\./;
-			expect(error).to.match(errorRegex);
-		});
-
+	const errorRegex = /Dates must be between \d{1,2}\/\d{1,2}\/\d{4} and \d{1,2}\/\d{1,2}\/\d{4}\./;
+	expect($(`.error-link[href="${href}"]`).getText())
+		.to.eventually.match(errorRegex);
 });

@@ -1,7 +1,10 @@
 const { ProtractorApiResource } = require('protractor-api-resource');
 const { Given, When, Then, Before } = require('cucumber');
 const { protractor, browser, $ } = require('protractor');
-const { expect } = require('chai');
+
+const chai = require('chai');
+chai.use(require('chai-as-promised'));
+const expect = chai.expect;
 
 let apiClient;
 Given('the API client is opened', () => {
@@ -50,62 +53,56 @@ Then('the GET method gets the first post', () => {
 		body: 'quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto'
 	};
 
-	apiClient.getFirstPost({ postId: 1 })
-		.toJSON().then(actualResponse => {
-			expect(actualResponse).to.eql(expectedResponse);
-		});
+	let API = apiClient.getFirstPost({ postId: 1 });
+	expect(API.toJSON()).to.eventually.eql(expectedResponse);
 });
 
 Then('the GET method gets all posts', () => {
 	const expectedKeys = ['id', 'userId', 'title', 'body'];
 
-	apiClient.getAllPosts({})
-		.toJSON().then(actualResponse => {
-			expect(actualResponse).to.have.lengthOf(100);
-			actualResponse.forEach(element => {
-				expect(element).to.have.all.keys(expectedKeys);
+	let API = apiClient.getAllPosts({});
+	expect(API.toJSON()).to.eventually.have.lengthOf(100);
 
-				expect(element.id).to.be.a('number');
-				expect(element.userId).to.be.a('number');
-				expect(element.title).to.be.a('string');
-				expect(element.body).to.be.a('string');
-			});
+	API.toJSON().then(actualResponse => {
+		actualResponse.forEach(element => {
+			expect(element).to.have.all.keys(expectedKeys);
+
+			expect(element.id).to.be.a('number');
+			expect(element.userId).to.be.a('number');
+			expect(element.title).to.be.a('string');
+			expect(element.body).to.be.a('string');
 		});
+	});
 });
 
 Then('the POST method inserts a post', () => {
 	const payLoad = { userId: 1, title: 'foo', body: 'bar' };
 	const expectedResponse = { id: 101, ...payLoad };
 
-	apiClient.createPost({}, payLoad)
-		.toJSON().then(actualResponse => {
-			expect(actualResponse).to.eql(expectedResponse);
-		});
+	let API = apiClient.createPost({}, payLoad);
+	expect(API.toJSON()).to.eventually.eql(expectedResponse);
 });
 
 Then('the PUT method updates a post', () => {
 	const payLoad = { id: 1, userId: 1, title: 'foo', body: 'bar' };
 	const expectedResponse = { ...payLoad };
 
-	apiClient.updatePost({ postId: 1 }, payLoad)
-		.toJSON().then(actualResponse => {
-			expect(actualResponse).to.eql(expectedResponse);
-		});
+	let API = apiClient.updatePost({ postId: 1 }, payLoad);
+	expect(API.toJSON()).to.eventually.eql(expectedResponse);
 });
 
 Then('the PATCH method updates a post', () => {
 	const payLoad = { title: 'foo', body: 'bar' };
 	const expectedResponse = { id: 1, userId: 1, ...payLoad };
 
-	apiClient.patchPost({ postId: 1 }, payLoad)
-		.toJSON().then(actualResponse => {
-			expect(actualResponse).to.eql(expectedResponse);
-		});
+	let API = apiClient.patchPost({ postId: 1 }, payLoad);
+	expect(API.toJSON()).to.eventually.eql(expectedResponse);
 });
 
 Then('the DELETE method deletes the first post', () => {
-	apiClient.deletePost({ postId: 1 })
-		.toJSON().then(actualResponse => {
-			expect(actualResponse).to.be.empty;
-		});
+	let API = apiClient.deletePost({ postId: 1 });
+	expect(API.toJSON())
+		.to.eventually
+		.be.an('object')
+		.that.is.empty;
 });
