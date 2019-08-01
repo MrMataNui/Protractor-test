@@ -58,7 +58,7 @@ Then('the GET method gets the first post', () => {
 		body: 'quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto'
 	};
 
-	let apiBody = apiClient.getFirstPost(firstPost);
+	const apiBody = apiClient.getFirstPost(firstPost);
 	apiBody.toJSON()
 		.should.eventually
 		.eql(expectedResponse);
@@ -72,45 +72,47 @@ Then('the GET method gets all posts', () => {
 		.that.has.a.lengthOf(100);
 
 	apiBody.toJSON()
-		.should.eventually
-		.all.have.property('id')
-		.and.all.have.property('userId')
-		.and.all.have.property('title')
-		.and.all.have.property('body');
+		.then(body => {
+			expect(body)
+				.to.all.have.property('id')
+				.and.all.have.property('userId')
+				.and.all.have.property('title')
+				.and.all.have.property('body');
+		});
 });
 
 Then('the POST method inserts a post', () => {
 	const payLoad = { userId: 1, title: 'foo', body: 'bar' };
 	const expectedResponse = { id: 101, ...payLoad };
 
-	let apiBody = apiClient.createPost({}, payLoad);
+	const apiBody = apiClient.createPost({}, payLoad);
 	apiBody.toJSON()
 		.should.eventually
 		.eql(expectedResponse);
 });
 
-Then('the PUT method updates a post', () => {
+Then('the PUT method updates the first post', () => {
 	const payLoad = { id: 1, userId: 1, title: 'foo', body: 'bar' };
 	const expectedResponse = { ...payLoad };
 
-	let apiBody = apiClient.updatePost(firstPost, payLoad);
+	const apiBody = apiClient.updatePost(firstPost, payLoad);
 	apiBody.toJSON()
 		.should.eventually
 		.eql(expectedResponse);
 });
 
-Then('the PATCH method updates a post', () => {
+Then('the PATCH method updates the first post', () => {
 	const payLoad = { title: 'foo', body: 'bar' };
 	const expectedResponse = { id: 1, userId: 1, ...payLoad };
 
-	let apiBody = apiClient.patchPost(firstPost, payLoad);
+	const apiBody = apiClient.patchPost(firstPost, payLoad);
 	apiBody.toJSON()
 		.should.eventually
 		.eql(expectedResponse);
 });
 
 Then('the DELETE method deletes the first post', () => {
-	let apiBody = apiClient.deletePost(firstPost);
+	const apiBody = apiClient.deletePost(firstPost);
 	apiBody.toJSON()
 		.should.eventually
 		.be.an('object')

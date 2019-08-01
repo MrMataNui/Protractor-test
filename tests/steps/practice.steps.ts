@@ -5,16 +5,38 @@ const chai = require('chai');
 chai.use(require('chai-as-promised'));
 const expect = chai.expect;
 
-const { getSearch, getError, getQuery } = require('../../classes/travel-location');
+const { getSearch, getError } = require('../../classes/travel-location');
 const field = require('../../classes/clear-fields');
 
-let travelPage, travelError;
-Before(() => {
-	travelPage = new getSearch(getQuery);
-	travelError = new getError(getQuery);
+const travelQuery = {
+	isErrorObj: false,
+	location: 'Boston, Massachusetts',
+	checkIn: '08/20/2019', checkOut: '08/25/2019',
+	inhabitants: [
+		{ adults: 2, children: 1, childrenAges: [10] },
+		{ adults: 1, children: 2, childrenAges: [4, 5] },
+	],
+	flight: true, car: false,
+	flightFrom: 'Baltimore, MD (BWI-Baltimore Washington Intl. Thurgood Marshall)',
+	directFlight: true
+};
 
+const errorQuery = {
+	isErrorObj: true,
+	checkIn: '07/17/2019', checkOut: '08/30/2019',
+	inhabitants: [
+		{ adults: 3, children: 2, childrenAges: [10, 'Age'] },
+		{ adults: 1, children: 2, childrenAges: [4, 5] },
+	]
+};
+
+let travelSearch, travelError;
+Before(() => {
 	browser.waitForAngularEnabled(false);
 	browser.get('https://www.travelocity.com/');
+
+	travelSearch = new getSearch(travelQuery);
+	travelError = new getError(errorQuery);
 });
 
 Given('Travelocity is opened', () => {
@@ -24,11 +46,11 @@ Given('Travelocity is opened', () => {
 });
 
 When('it enters in valid data', () => {
-	travelPage.setValidData();
+	travelSearch.setValidData();
 });
 
 Then('it should submit travel information', () => {
-	travelPage.clickSubmit();
+	travelSearch.clickSubmit();
 
 	expect(browser.getTitle())
 		.to.eventually.include('/Hotel-Search');

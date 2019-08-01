@@ -8,15 +8,15 @@ exports.config = {
 	},
 	cucumberOpts: {
 		require: [
-			'tests/steps/*.steps.ts',
-			// 'tests/steps/practice.steps.ts',
-			// 'tests/steps/api.steps.ts',
+			// 'tests/steps/*.steps.ts',
+			'tests/steps/practice.steps.ts',
+			'tests/steps/api.steps.ts',
 		]
 	},
 	specs: [
-		'tests/*.feature',
-		// 'tests/practice.feature',
-		// 'tests/api.feature',
+		// 'tests/*.feature',
+		'tests/practice.feature',
+		'tests/api.feature',
 	]
 };
 /*
