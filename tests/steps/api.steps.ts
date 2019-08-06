@@ -4,14 +4,18 @@ const { protractor, browser, $ } = require('protractor');
 
 const chai = require('chai');
 chai.should();
-chai.use(require('chai-things'));
 chai.use(require('chai-as-promised'));
+chai.use(require('chai-things'));
+chai.use(require('chai-each'));
 const expect = chai.expect;
 
-let apiClient, firstPost;
+let apiClient, firstPost, getFirstIds, testData;
 Given('the API client is opened', () => {
-	apiClient = new ProtractorApiResource('https://jsonplaceholder.typicode.com/');
 	firstPost = { userId: 1 };
+	getFirstIds = { id: 1, ...firstPost };
+	testData = { title: 'foo', body: 'bar' };
+
+	apiClient = new ProtractorApiResource('https://jsonplaceholder.typicode.com/');
 });
 
 /** Used to enter in authorization */
@@ -53,13 +57,13 @@ When('the enpoints are entered into the API', () => {
 
 Then('the GET method gets the first post', () => {
 	const expectedResponse = {
-		id: 1, userId: 1,
+		...getFirstIds,
 		title: 'sunt aut facere repellat provident occaecati excepturi optio reprehenderit',
 		body: 'quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto'
 	};
 
-	const apiBody = apiClient.getFirstPost(firstPost);
-	apiBody.toJSON()
+	apiClient
+		.getFirstPost(firstPost).toJSON()
 		.should.eventually
 		.eql(expectedResponse);
 });
@@ -71,49 +75,49 @@ Then('the GET method gets all posts', () => {
 		.be.an('array')
 		.that.has.a.lengthOf(100);
 
+	// apiBody.toJSON()
+	// 	.should.eventually
+	// 	.have.all.keys(['id', 'userId', 'title', 'body']);
+
 	apiBody.toJSON()
 		.then(body => {
-			expect(body)
-				.to.all.have.property('id')
-				.and.all.have.property('userId')
-				.and.all.have.property('title')
-				.and.all.have.property('body');
+			expect(body).to.have.all.keys(['id', 'userId', 'title', 'body']);
 		});
 });
 
 Then('the POST method inserts a post', () => {
-	const payLoad = { userId: 1, title: 'foo', body: 'bar' };
+	const payLoad = { ...firstPost, ...testData };
 	const expectedResponse = { id: 101, ...payLoad };
 
-	const apiBody = apiClient.createPost({}, payLoad);
-	apiBody.toJSON()
+	apiClient
+		.createPost({}, payLoad).toJSON()
 		.should.eventually
 		.eql(expectedResponse);
 });
 
 Then('the PUT method updates the first post', () => {
-	const payLoad = { id: 1, userId: 1, title: 'foo', body: 'bar' };
+	const payLoad = { ...getFirstIds, ...testData };
 	const expectedResponse = { ...payLoad };
 
-	const apiBody = apiClient.updatePost(firstPost, payLoad);
-	apiBody.toJSON()
+	apiClient
+		.updatePost(firstPost, payLoad).toJSON()
 		.should.eventually
 		.eql(expectedResponse);
 });
 
 Then('the PATCH method updates the first post', () => {
-	const payLoad = { title: 'foo', body: 'bar' };
-	const expectedResponse = { id: 1, userId: 1, ...payLoad };
+	const payLoad = { ...testData };
+	const expectedResponse = { ...getFirstIds, ...payLoad };
 
-	const apiBody = apiClient.patchPost(firstPost, payLoad);
-	apiBody.toJSON()
+	apiClient
+		.patchPost(firstPost, payLoad).toJSON()
 		.should.eventually
 		.eql(expectedResponse);
 });
 
 Then('the DELETE method deletes the first post', () => {
-	const apiBody = apiClient.deletePost(firstPost);
-	apiBody.toJSON()
+	apiClient
+		.deletePost(firstPost).toJSON()
 		.should.eventually
 		.be.an('object')
 		.that.is.empty;
