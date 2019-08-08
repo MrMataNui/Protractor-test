@@ -33,6 +33,9 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
+/reports
+package-lock.json
+/ConvertedJSFiles
 
 # System Files
 .DS_Store

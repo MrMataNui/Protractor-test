@@ -4,19 +4,20 @@ exports.config = {
 	frameworkPath: require.resolve('protractor-cucumber-framework'),
 	capabilities: {
 		'directConnect': true,
-		'browserName': 'chrome'
+		'browserName': 'chrome',
+		'instances': 5
 	},
 	cucumberOpts: {
 		require: [
-			// 'tests/steps/*.steps.ts',
-			'tests/steps/practice.steps.ts',
-			'tests/steps/api.steps.ts',
+			'steps/*.steps.ts',
+			// 'steps/practice.steps.ts',
+			// 'steps/api.steps.ts',
 		]
 	},
 	specs: [
-		// 'tests/*.feature',
-		'tests/practice.feature',
-		'tests/api.feature',
+		'features/*.feature',
+		// 'features/practice.feature',
+		// 'features/api.feature',
 	]
 };
 /*

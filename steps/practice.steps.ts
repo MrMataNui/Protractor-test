@@ -1,13 +1,16 @@
-const { Given, When, Then, Before, Feature, Scenario } = require('cucumber');
-const { by, element, protractor, browser, $ } = require('protractor');
-
 const chai = require('chai');
 chai.use(require('chai-as-promised'));
 const expect = chai.expect;
 
-const { getSearch, getError } = require('../../classes/travel-location');
-const field = require('../../classes/clear-fields');
+import { Given, When, Then, Before } from 'cucumber';
+import { protractor, browser, ElementFinder, $ } from 'protractor';
 
+import { getSearch, getError } from '../classes/travel-location';
+import fieldClear from '../classes/clear-fields';
+
+const seconds = (int: number): number => int * 1000;
+
+interface ErrorSearch { location: ElementFinder, text: string }
 const travelQuery = {
 	isErrorObj: false,
 	location: 'Boston, Massachusetts',
@@ -30,7 +33,7 @@ const errorQuery = {
 	]
 };
 
-let travelSearch, travelError;
+let travelSearch: getSearch, travelError: getError;
 Before(() => {
 	browser.waitForAngularEnabled(false);
 	browser.get('https://www.travelocity.com/');
@@ -57,70 +60,75 @@ Then('it should submit travel information', () => {
 });
 
 When('bad info is presented', () => {
-	field.clear();
+	fieldClear();
 	travelError.setInvalidData();
 });
 
 Then('it should present destination errors', () => {
-	const error = travelError.find('destination');
+	const error: ErrorSearch = travelError.find('destination');
 
 	const findError = protractor
 		.ExpectedConditions
 		.textToBePresentInElement(error.location, error.text);
-	browser.wait(findError, 15000);
+	browser.wait(findError, seconds(15));
 
 	// expect(error.location.isPresent()).to.eventually.be.true;
 	// expect(error.location.getText()).to.eventually.equal(error.text);
 });
 
 Then('it should present flight errors', () => {
-	const error = travelError.find('flight');
+	const error: ErrorSearch = travelError.find('flight');
 
 	const findError = protractor
 		.ExpectedConditions
 		.textToBePresentInElement(error.location, error.text);
-	browser.wait(findError, 15000);
+	browser.wait(findError, seconds(15));
 });
 
 Then('it should present traveller errors', () => {
-	const error = travelError.find('traveller');
+	const error: ErrorSearch = travelError.find('traveller');
 
 	const findError = protractor
 		.ExpectedConditions
 		.textToBePresentInElement(error.location, error.text);
-	browser.wait(findError, 15000);
+	browser.wait(findError, seconds(15));
 });
 
 Then('it should present ageSelect errors', () => {
-	const error = travelError.find('ageSelect');
+	const error: ErrorSearch = travelError.find('ageSelect');
 
-	const findError = protractor
+	const findError: Function = protractor
 		.ExpectedConditions
 		.textToBePresentInElement(error.location, error.text);
-	browser.wait(findError, 15000);
+	browser.wait(findError, seconds(15));
 });
 
 Then('it should present dateSelect errors', () => {
-	const errorLocations = {
+	interface TimeCheck { checkIn: ElementFinder; checkOut: ElementFinder; }
+	const errorLocations: TimeCheck = {
 		checkIn: $(`.error-link[href="#hotel-checkin-hp-hotel"]`),
 		checkOut: $(`.error-link[href="#hotel-checkout-hp-hotel"]`),
 	};
 
-	const errorText = {
+	interface GetErrorText { error1: string; error2: string; }
+	const errorText: GetErrorText = {
 		error1: 'Dates must be no more than 28 days apart.',
 		error2: 'Your length of stay cannot be longer than 28 nights.',
 	};
-	const findErrorText = travelError.dateCheck(errorLocations, errorText);
-	browser.wait(findErrorText, 5000);
+	const findErrorText: Function = travelError.dateCheck(errorLocations, errorText);
+	browser.wait(findErrorText, seconds(5));
 
-	const dateFormat = /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/;
-	let href = travelError.dateFormatCheck(dateFormat);
+	const dateFormat: RegExp = /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/;
+	const dateFormatHref: string = travelError.dateFormatCheck(dateFormat);
 
-	expect($(`.error-link[href="${href}"]`).getText())
-		.to.eventually.equal('Date format should be MM/dd/yyyy.');
+	expect($(`.error-link[href="${dateFormatHref}"]`).getText())
+		.to.eventually
+		.equal('Date format should be MM/dd/yyyy.');
 
-	href = travelError.currentDateCheck();
-	const errorRegex = /Dates must be between \d{1,2}\/\d{1,2}\/\d{4} and \d{1,2}\/\d{1,2}\/\d{4}\./;
-	expect($(`.error-link[href="${href}"]`).getText())
-		.to.eventually.match(errorRegex);
+	const errorRegex: RegExp = /Dates must be between \d{1,2}\/\d{1,2}\/\d{4} and \d{1,2}\/\d{1,2}\/\d{4}\./;
+	const currentDateHref: string = travelError.currentDateCheck();
+
+	expect($(`.error-link[href="${currentDateHref}"]`).getText())
+		.to.eventually
+		.match(errorRegex);
 });
